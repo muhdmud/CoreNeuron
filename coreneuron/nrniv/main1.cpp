@@ -280,7 +280,7 @@ void nrn_init_and_load_data(int argc,
 
     // Invoke PatternStim
     if (nrnopt_get_flag("--pattern")) {
-        nrn_mkPatternStim(nrnopt_get_str("--pattern").c_str());
+        nrn_mkPatternStim(nrnopt_get_str("--pattern").c_str(), nrnopt_get_dbl("--tstop"));
     }
 
     /// Setting the timeout

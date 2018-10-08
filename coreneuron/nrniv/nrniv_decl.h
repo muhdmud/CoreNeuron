@@ -59,7 +59,7 @@ extern int nrn_setup_multiple;
 extern int nrn_setup_extracon;
 extern void nrn_cleanup(bool clean_ion_global_map = true);
 extern void BBS_netpar_solve(double);
-extern void nrn_mkPatternStim(const char* filename);
+extern void nrn_mkPatternStim(const char* filename, double tstop);
 extern int nrn_extra_thread0_vdata;
 extern void nrn_set_extra_thread0_vdata(void);
 extern Point_process* nrn_artcell_instantiate(const char* mechname);
