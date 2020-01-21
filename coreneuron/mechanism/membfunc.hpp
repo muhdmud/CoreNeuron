@@ -28,9 +28,12 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <cstring>
+#include <string>
 #include <vector>
 
 #include "coreneuron/mechanism/mechanism.hpp"
+#include "coreneuron/utils/nrnoc_aux.hpp"
 namespace coreneuron {
 
 typedef Datum* (*Pfrpdat)(void);
@@ -44,7 +47,65 @@ typedef void (*pnt_receive_t)(Point_process*, int, double);
 /*
  * Memb_func structure contains all related informations of a mechanism
  */
-struct Memb_func {
+class Memb_func {
+  public:
+    void register_mech(const char* m,
+                      mod_alloc_t alloc,
+                      mod_f_t cur,
+                      mod_f_t jacob,
+                      mod_f_t stat,
+                      mod_f_t initialize,
+                      int vectorized) {
+
+        if (this->sym) {
+            assert(strcmp(this->sym, m) == 0);
+        } else {
+            this->sym = (char*)emalloc(strlen(m) + 1);
+            strcpy(this->sym, m);
+        }
+        this->current = cur;
+        this->jacob = jacob;
+        this->alloc = alloc;
+        this->state = stat;
+        this->initialize = initialize;
+        this->destructor = (Pfri)0;
+#if VECTORIZE
+        this->vectorized = vectorized ? 1 : 0;
+        this->thread_size_ = vectorized ? (vectorized - 1) : 0;
+        this->thread_mem_init_ = nullptr;
+        this->thread_cleanup_ = nullptr;
+        this->thread_table_check_ = nullptr;
+        this->is_point = 0;
+        this->setdata_ = nullptr;
+        this->dparam_semantics = nullptr;
+#endif
+    }
+
+    bool set_semantics(const std::string& name, int ix) {
+        if (name == "area") {
+            this->dparam_semantics[ix] = -1;
+        } else if (name == "iontype") {
+            this->dparam_semantics[ix] = -2;
+        } else if (name == "cvodeieq") {
+            this->dparam_semantics[ix] = -3;
+        } else if (name == "netsend") {
+            this->dparam_semantics[ix] = -4;
+        } else if (name == "pointer") {
+            this->dparam_semantics[ix] = -5;
+        } else if (name == "pntproc") {
+            this->dparam_semantics[ix] = -6;
+        } else if (name == "bbcorepointer") {
+            this->dparam_semantics[ix] = -7;
+        } else if (name == "watch") {
+            this->dparam_semantics[ix] = -8;
+        } else if (name == "diam") {
+            this->dparam_semantics[ix] = -9;
+        } else {
+            return false;
+        }
+        return true;
+    }
+
     mod_alloc_t alloc;
     mod_f_t current;
     mod_f_t jacob;
@@ -60,6 +121,8 @@ struct Memb_func {
     int is_point;
     void (*setdata_)(double*, Datum*);
     int* dparam_semantics; /* for nrncore writing. */
+
+  private:
 };
 
 #define VINDEX -1
