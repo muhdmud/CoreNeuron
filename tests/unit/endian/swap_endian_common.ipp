@@ -48,7 +48,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #define BOOST_TEST_MODULE CONCAT2(SwapEndian,SWAP_ENDIAN_CONFIG)
 #define BOOST_TEST_MAIN
 #include <boost/test/unit_test.hpp>
-#include <boost/test/test_case_template.hpp>
 #include <boost/mpl/list.hpp>
 
 #include <list>
