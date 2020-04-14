@@ -25,3 +25,7 @@ patch_neuron
 spack install neuron+debug@develop
 source $SPACK_ROOT/share/spack/setup-env.sh
 module av neuron
+
+# Install reportinglib with spack to run reportinglib tests
+spack install reportinglib%intel
+
