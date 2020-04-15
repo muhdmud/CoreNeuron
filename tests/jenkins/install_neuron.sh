@@ -22,7 +22,7 @@ set -e
 source ${JENKINS_DIR:-.}/_env_setup.sh
 
 patch_neuron
-spack install neuron+debug@develop
+spack install -v neuron+debug@develop
 source $SPACK_ROOT/share/spack/setup-env.sh
 module av neuron
 
