@@ -24,9 +24,9 @@ pipeline {
             }
         }
 
-        stage('spack install neuron+debug@develop'){
+        stage('Spack installations'){
             steps {
-                sh 'sh tests/jenkins/install_neuron.sh'
+                sh 'sh tests/jenkins/install_neuron_reportinglib.sh'
             }
         }
 

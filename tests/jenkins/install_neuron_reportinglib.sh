@@ -21,11 +21,13 @@ patch_neuron() (
 set -e
 source ${JENKINS_DIR:-.}/_env_setup.sh
 
+# Install reportinglib with spack to run reportinglib tests
+spack install reportinglib%intel &
+pid=$!
+
 patch_neuron
 spack install -v neuron+debug@develop
 source $SPACK_ROOT/share/spack/setup-env.sh
 module av neuron
 
-# Install reportinglib with spack to run reportinglib tests
-spack install reportinglib%intel
-
+wait "$pid"
