@@ -22,21 +22,23 @@ class mpi_logger: public logger
 {
 public:
     // Empty logger
-    explicit mpi_logger(std::string logger_name, int tag_ = 4444, int server_rank_ = 0, MPI_Comm comm_ = MPI_COMM_WORLD)
+    explicit mpi_logger(std::string logger_name, int server_rank_ = 0, MPI_Comm comm_ = MPI_COMM_WORLD)
         : logger(std::move(logger_name))
-        , tag(tag_), server_rank(server_rank_), comm(comm_)
+        , server_rank(server_rank_)
     {
+        MPI_Comm_dup(comm_, &comm);
         MPI_Comm_rank(comm, &mpi_rank);
         if (mpi_rank == server_rank) {
             server_thr = std::thread([&](){
-                int i = 4;
-                while(i--) {
+                int stopped = 1;
+                MPI_Finalized(&stopped);
+                while(!stopped) {
                     MPI_Status status;
-                    MPI_Probe(MPI_ANY_SOURCE, tag, comm, &status);
+                    MPI_Probe(MPI_ANY_SOURCE, 0, comm, &status);
                     int msg_size = 0;
                     MPI_Get_count(&status, MPI_BYTE, &msg_size);
                     auto buf = std::make_unique<char[]>(msg_size);
-                    MPI_Recv(buf.get(), msg_size, MPI_PACKED, MPI_ANY_SOURCE, tag, comm, MPI_STATUS_IGNORE);
+                    MPI_Recv(buf.get(), msg_size, MPI_PACKED, MPI_ANY_SOURCE, 0, comm, MPI_STATUS_IGNORE);
 
                     int position = 0;
                     int level = 0;
@@ -44,8 +46,9 @@ public:
                     unsigned long payload_size = 0;
                     MPI_Unpack(buf.get(), msg_size, &position, &payload_size, 1, MPI_UNSIGNED_LONG, comm);
                     std::string payload(payload_size, ' ');
-                    MPI_Unpack(buf.get(), msg_size, &position, &payload[0], payload_size, MPI_BYTE, comm);
+                    MPI_Unpack(buf.get(), msg_size, &position, &payload[0], payload_size, MPI_CHAR, comm);
                     std::cout << "[" << level << "] " << payload << std::endl;
+                    MPI_Finalized(&stopped);
                 }
             });
         }
@@ -53,7 +56,7 @@ public:
 
     ~mpi_logger() override {
         if (mpi_rank == server_rank)
-        server_thr.join();
+            server_thr.join();
     }
 
 protected:
@@ -73,14 +76,13 @@ protected:
         auto payload_size = msg.payload.size();
         MPI_Pack(&payload_size, 1, MPI_UNSIGNED_LONG, buf.get(), msg_size, &position, comm);
         const char* payload = msg.payload.data();
-        MPI_Pack(&payload, payload_size, MPI_BYTE, buf.get(), msg_size, &position, comm);
+        MPI_Pack(payload, payload_size, MPI_CHAR, buf.get(), msg_size, &position, comm);
         assert(position == msg_size);
-        MPI_Send(buf.get(), position, MPI_PACKED, server_rank, tag, comm);
+        MPI_Send(buf.get(), position, MPI_PACKED, server_rank, 0, comm);
     }
     void flush_() override {}
 
 private:
-    int tag;
     int server_rank;
     MPI_Comm comm;
 
