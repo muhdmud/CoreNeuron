@@ -32,6 +32,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <fstream>
 #include <sstream>
 
+#include "coreneuron/apps/corenrn_parameters.hpp"
 #include "coreneuron/nrnconf.h"
 #include "coreneuron/sim/multicore.hpp"
 #include "coreneuron/membrane_definitions.h"
@@ -43,10 +44,12 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include "coreneuron/coreneuron.hpp"
 #include "coreneuron/mechanism//eion.hpp"
 
-static char banner[] = "Duke, Yale, and the BlueBrain Project -- Copyright 1984-2019";
+static char banner[] = "Duke, Yale, and the BlueBrain Project -- Copyright 1984-2020";
 
 namespace coreneuron {
 int nrn_nobanner_;
+
+extern corenrn_parameters corenrn_param;
 
 // NB: this should go away
 extern const char* nrn_version(int);
@@ -177,7 +180,7 @@ static void mk_mech(std::istream& s) {
         // printf("%s %d %d\n", mname, nrn_get_mechtype(mname), type);
     }
 
-    if (nrnmpi_myid < 1 && nrn_nobanner_ == 0) {
+    if (nrnmpi_myid < 1 && nrn_nobanner_ == 0 && !corenrn_param.is_quiet()) {
         fprintf(stderr, " \n");
         fprintf(stderr, " %s\n", banner);
         fprintf(stderr, " %s\n", nrn_version(1));
