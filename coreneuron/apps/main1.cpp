@@ -465,6 +465,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
 
     std::vector<ReportConfiguration> configs;
     std::vector<std::unique_ptr<ReportHandler> > report_handlers;
+    std::string spikes_population_name;
     bool reports_needs_finalize = false;
 
     if (!corenrn_param.is_quiet()) {
@@ -482,7 +483,8 @@ extern "C" int run_solve_core(int argc, char** argv) {
                 printf("\n WARNING! : Can't enable reports with model duplications feature! \n");
         } else {
             configs = create_report_configurations(corenrn_param.reportfilepath.c_str(),
-                                                   corenrn_param.outpath.c_str());
+                                                   corenrn_param.outpath.c_str(),
+                                                   spikes_population_name);
             reports_needs_finalize = configs.size();
         }
     }
@@ -596,7 +598,7 @@ extern "C" int run_solve_core(int argc, char** argv) {
     // write spike information to outpath
     {
         Instrumentor::phase p("output-spike");
-        output_spikes(output_dir.c_str());
+        output_spikes(output_dir.c_str(), spikes_population_name);
     }
 
     {
